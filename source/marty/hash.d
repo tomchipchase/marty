@@ -1,6 +1,7 @@
 module marty.hash;
 
 import std.exception : assumeUnique;
+import std.typecons : Nullable;
 
 /**
   * A Hash object that is immutable with time travelling features.
@@ -8,18 +9,19 @@ import std.exception : assumeUnique;
 immutable class Hash(K, V) {
   public:
     alias _data this;
+    alias Value = Nullable!V;
 
     /**
      * Initialize a hash with data from a standard hash
      */
-    this(immutable(V[K]) data) pure {
+    this(immutable(Value[K]) data) pure {
         _data = data;
         _previousVersion = null;
     }
 
     ///
     unittest {
-      immutable data = ["foo": 1];
+      immutable data = ["foo": Nullable!V(1)];
       immutable subject = new immutable(Hash!(string, int))(data);
     }
 
@@ -28,13 +30,13 @@ immutable class Hash(K, V) {
      * Returns: New updated hash object with value inserted.
      */
     auto insert(in K key, in V value) pure {
-        immutable(V[K]) newHash = [key: value];
+        immutable(Value[K]) newHash = [key: Value(value)];
         return new immutable(Hash!(K, V))(newHash, this);
     }
 
     ///
     unittest {
-        immutable data = ["foo": 1];
+        immutable data = ["foo": Nullable!V(1)];
         immutable subject = new immutable(Hash!(string, int))(data);
         auto result = subject.insert("bar", 2);
     }
@@ -43,14 +45,14 @@ immutable class Hash(K, V) {
      * Fetch a value from the hash. Raise an error if the key does not exist
      * in the hash.
      */
-    V opIndex(in K key) pure @nogc {
+    Value opIndex(in K key) pure @nogc {
         auto ptr = key in _data;
         return ptr ? *ptr : _previousVersion[key];
     }
 
     ///
     unittest {
-        immutable data = ["foo": 1];
+        immutable data = ["foo": Nullable!V(1)];
         immutable subject = new immutable(Hash!(string, int))(data);
         auto result = subject.insert("bar", 2);
         assert(result["bar"] == 2);
@@ -66,9 +68,9 @@ immutable class Hash(K, V) {
 
     ///
     unittest {
-        immutable data = ["foo": 1];
-        immutable subject = new immutable(Hash!(string, int))(data);
-        auto result = subject.insert("foo", 2).rollBack;
+        immutable data = ["foo": Nullable!V(1)];
+        immutable subject = new immutable(Hash!(K, V))(data);
+        auto result = subject.insert("foo", Nullable!V(2)).rollBack;
         assert(result["foo"] == 1);
     }
 
@@ -76,22 +78,24 @@ immutable class Hash(K, V) {
      * Returns an updated hash with a key value removed from the hash.
      */
     auto remove(K key) pure {
-        return this;
+        Value value;
+        immutable(Value[K]) newHash = [key: value];
+        return new immutable(Hash!(K, V))(newHash, this);
     }
 
     ///
     unittest {
-        immutable data = ["foo": 1];
+        immutable data = ["foo": Nullable!V(1)];
         immutable subject = new immutable(Hash!(string, int))(data);
         auto result = subject.remove("foo");
-        assert(result["foo"] != 1);
+        assert(result["foo"].isNull);
     }
 
   private:
-    V[K] _data;
+    Value[K] _data;
     Hash!(K, V) _previousVersion;
 
-    this(immutable(V[K]) data, immutable(Hash!(K, V)) previousVersion) pure {
+    this(immutable(Value[K]) data, immutable(Hash!(K, V)) previousVersion) pure {
         _data = data;
         _previousVersion = cast(immutable)previousVersion;
     }
