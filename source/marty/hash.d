@@ -217,22 +217,46 @@ public:
 
     /**
      * Compacts the storage hash to speed up lookups.
+     */
     auto compact() pure {
-        auto hash = zip(keys, values).assocArray;
+        Value[K] hash = zip(keys, values.map!(v => Value(v))).assocArray;
         immutable Value[K] newHash = cast(immutable)hash.dup;
         return new immutable(Hash!(K, V))(newHash, this);
     }
 
     ///
     unittest {
-        immutable data = ["foo": Nullable!V(1)];
+        immutable data = ["foo": 1];
         immutable subject = new immutable(Hash!(string, int))(data);
         auto result = subject.insert("bar", 2).compact;
+        assert(result._data["foo"] == 1);
         assert(result["foo"] == 1);
+        assert(result._data["bar"] == 2);
         assert(result["bar"] == 2);
     }
 
+    /**
+     * Purge the previous version from history.
      */
+    auto purge() {
+        V[K] hash = zip(keys, values).assocArray;
+        immutable V[K] newHash = cast(immutable)hash.dup;
+        return new immutable(Hash!(K, V))(newHash);
+    }
+
+    ///
+    unittest {
+        immutable data = ["foo": 1];
+        immutable subject = new immutable(Hash!(string, int))(data);
+        auto result = subject.insert("bar", 2).purge;
+        assert(result._data["foo"] == 1);
+        assert(result["foo"] == 1);
+        assert(result._data["bar"] == 2);
+        assert(result["bar"] == 2);
+
+        assert(result._previousVersion is null);
+    }
+
 private:
 
     Value[K] _data;
