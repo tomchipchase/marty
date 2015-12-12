@@ -35,7 +35,7 @@ public:
      * Create a new hash with the passed in value set.
      * Returns: New updated hash object with value inserted.
      */
-    auto insert(in K key, in V value) pure {
+    auto insert(in K key, in V value) pure nothrow {
         immutable(Value[K]) newHash = [key: Value(value)];
         return new immutable(Hash!(K, V))(newHash, this);
     }
@@ -51,7 +51,7 @@ public:
      * Fetch a value from the hash. Raise an error if the key does not exist
      * in the hash.
      */
-    Value opIndex(in K key) pure @nogc {
+    Value opIndex(in K key) @nogc pure nothrow  {
         auto ptr = key in _data;
         return ptr ? *ptr : _previousVersion[key];
     }
@@ -68,7 +68,7 @@ public:
     /**
      * Return the previous state of the hash.
      */
-    auto rollBack() @nogc pure {
+    auto rollBack() @nogc pure nothrow {
         return _previousVersion;
     }
 
@@ -83,7 +83,7 @@ public:
     /**
      * Returns an updated hash with a key value removed from the hash.
      */
-    auto remove(K key) pure {
+    auto remove(K key) pure nothrow {
         Value value;
         immutable(Value[K]) newHash = [key: value];
         return new immutable(Hash!(K, V))(newHash, this);
@@ -100,7 +100,7 @@ public:
     /**
      * Returns all the keys in the hash which have a non null value.
      */
-    K[] keys() pure {
+    K[] keys() pure nothrow {
         return allKeys.filter!(k => !this[k].isNull).array;
     }
 
@@ -151,7 +151,7 @@ public:
     /**
      * Returns an array of all the values in the hash.
      */
-    V[] values() pure {
+    V[] values() pure nothrow {
         return keys
             .map!(k => this[k].get)
             .array;
@@ -238,7 +238,7 @@ public:
     /**
      * Purge the previous version from history.
      */
-    auto purge() {
+    auto purge() pure {
         V[K] hash = zip(keys, values).assocArray;
         immutable V[K] newHash = cast(immutable)hash.dup;
         return new immutable(Hash!(K, V))(newHash);
@@ -262,7 +262,7 @@ private:
     Value[K] _data;
     Hash!(K, V) _previousVersion;
 
-    this(immutable(Value[K]) data, immutable(Hash!(K, V)) previousVersion) pure {
+    this(immutable(Value[K]) data, immutable(Hash!(K, V)) previousVersion) pure nothrow {
         _data = data;
         _previousVersion = cast(immutable)previousVersion;
     }
@@ -270,7 +270,7 @@ private:
     /**
      * Returns an array of all the keys that have ever been set in the hash.
      */
-    K[] allKeys() {
+    K[] allKeys() pure nothrow {
         if (_previousVersion) {
             return sort(_data.keys ~ _previousVersion.allKeys).uniq.array;
         }
