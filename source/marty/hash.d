@@ -16,7 +16,7 @@ public:
     /**
      * Initialize a hash with data from a standard hash
      */
-    this(immutable(V[K]) data) pure {
+    this(in V[K] data) pure {
         Value[K] hash;
         foreach(K key, V value; data) {
             hash[key] = Value(value);
@@ -83,7 +83,7 @@ public:
     /**
      * Returns an updated hash with a key value removed from the hash.
      */
-    auto remove(K key) pure nothrow {
+    auto remove(in K key) pure nothrow {
         Value value;
         immutable(Value[K]) newHash = [key: value];
         return new immutable(Hash!(K, V))(newHash, this);
