@@ -1,8 +1,10 @@
 {
-	"name": "marty",
-	"description": "A minimal D application.",
-	"copyright": "Copyright © 2015, Tom",
-	"authors": ["Tom"],
-	"dependencies": {
-	}
+    "name": "marty",
+    "description": "A time travelling immutable hash implementation.",
+    "copyright": "Copyright (c) 2015, Tom Chipchase",
+    "license": "MIT",
+    "authors": ["Tom Chipchase"],
+    "version": "0.1.0",
+    "dependencies": {
+    }
 }
